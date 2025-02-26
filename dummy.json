@@ -1,0 +1,9 @@
+{
+    "tone":"princess",
+    "condition":"good",
+    "wakeTime":"09:00:00",
+    "food":["밥", "김치", "미역국"],
+    "userDo":["운동", "공부", "술"],
+    "meetPeople":["그레이", "비키"],
+    "extSentence":"오늘 하루 힘내자"
+}
