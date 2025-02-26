@@ -23,5 +23,4 @@ def load_json():
 @app.get("/get_data", response_model=DataModel)
 async def get_data():
     data = load_json()
-    print(data)
     return data
