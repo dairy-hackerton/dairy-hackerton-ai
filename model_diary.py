@@ -4,6 +4,7 @@ from typing import List
 import json
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
+import requests
 
 # 환경 변수 로드
 load_dotenv()
@@ -24,7 +25,7 @@ class DIARY:
     def __init__(self):
         load_dotenv()
         self.input_data = None
-        self.url = "" #사이트 주소 넣어주세요!
+        self.url = "https://effective-journey-4jgjwgvgqqgg3jwjw-8000.app.github.dev/get_data" #사이트 주소 넣어주세요!
         self.model = init_chat_model("gpt-4o-mini", model_provider = "openai")
         self.prompt_template = ChatPromptTemplate.from_messages(
             [
@@ -46,20 +47,6 @@ class DIARY:
                     """,
                 ),
                 MessagesPlaceholder(variable_name="messages"),
-            ]
-        )
-        self.translate_prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    f"""당신은 {language}와 영어에 원어민 수준의 유창성을 갖춘 전문 번역가입니다.  
-                    당신의 역할은 주어진 원문을 {language}로 번역하는 것입니다.  
-                    이 과정에서 의미, 어조, 문맥을 100% 정확하게 유지해야 합니다.
-
-                    **원문:** {text}  
-                    **정확한 번역:**
-                    """
-                )
             ]
         )
     # JSON 파일 로드 함수
@@ -92,6 +79,19 @@ class DIARY:
 
 @app.get("/generate_diary")
 async def generate_diary_entry():
-    data = load_json()  # JSON 데이터 불러오기
+    data = {
+        "tone":"princess",
+        "condition":"good",
+        "wakeTime":"09:00:00",
+        "food":["밥", "김치", "미역국"],
+        "userDo":["운동", "공부", "술"],
+        "meetPeople":["그레이", "비키"],
+        "extSentence":"오늘 하루 힘내자"
+    } # JSON 데이터 불러오기
     diary_entry = generate_diary(data)  # AI가 일기 작성
     return {"diary": diary_entry.content}
+
+if __name__ == '__main__':
+    url = "https://effective-journey-4jgjwgvgqqgg3jwjw-8000.app.github.dev/get_data"
+    data = load_json(url)
+    print(data)
