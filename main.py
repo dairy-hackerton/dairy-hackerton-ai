@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import List
 import json
@@ -8,6 +8,7 @@ import requests
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 import dairy_model
+import threading
 
 
 # 환경 변수 로드
@@ -35,8 +36,22 @@ def root():
     return {"message": "FastAPI is running!"}
 
 @app.post("/generate_diary")
-async def generate_diary_entry(request: DiaryRequest):
-    diary_kor, diary_eng, diary_Japan, diary_China, diary_latin, diary_summary = main_model.generate_diary(main_model.input_data) # AI가 일기 작성
+async def generate_diary_entry(data: DiaryRequest):
+    def on_server_start():
+        # 서버가 열린 후 특정 API 요청을 자동으로 실행 가능
+        url = "http://13.124.98.245:8000/generate_diary"
+        data = main_model.input_data
+        response = requests.post(url, json=data)
+
+
+    # 서버가 시작될 때 자동 실행되는 이벤트
+    @app.on_event("startup")
+    def startup_event():
+        threading.Thread(target=on_server_start, daemon=True).start()
+
+    #print("out_input", data)
+
+    diary_kor, diary_eng, diary_Japan, diary_China, diary_latin, diary_summary = main_model.generate_diary(data) # AI가 일기 작성
 
     return {"diary_kor": diary_kor.content,
         "diary_eng" : diary_eng.content,
