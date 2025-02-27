@@ -61,7 +61,7 @@ class DIARY:
             self.tone = "사극 말투를 사용하는 근엄한 조선시대 왕 말투"
 
         elif self.tone == "데일리": 
-            self.itone = "general"
+            self.tone = "general"
 
         elif self.tone == "사춘기 중학생":
             self.tone = "상처받을 정도로 시비거는 말투"
