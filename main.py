@@ -46,6 +46,7 @@ async def generate_diary_entry(data: DiaryRequest):
     # 서버가 시작될 때 자동 실행되는 이벤트
     @app.on_event("startup")
     def startup_event():
+        print("vicky")
         threading.Thread(target=on_server_start, daemon=True).start()
 
     #print("out_input", data)
