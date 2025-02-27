@@ -88,6 +88,7 @@ class DIARY:
     #이 과정에서 의미, 어조, 문맥을 100% 정확하게 유지해야 합니다.
     # 일기 생성
     def generate_diary(self, data):
+        self.change_tone()
         response_kor = self.model.invoke(self.prompt_template)
         response_eng = self.model.invoke(self.translate("English", response_kor))
         response_Japan = self.model.invoke(self.translate("Japanese", response_kor))

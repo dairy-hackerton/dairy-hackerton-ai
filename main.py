@@ -43,5 +43,5 @@ async def generate_diary_entry(request: DiaryRequest):
         "diary_japan" : diary_Japan.content, 
         "diary_China" : diary_China.content, 
         "diary_latin" : diary_latin.content,
-        "diary_summary" : diary_summary.content}
+        "summary" : diary_summary.content}
     
