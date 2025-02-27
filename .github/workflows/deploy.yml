@@ -25,6 +25,9 @@ jobs:
       run: |
         docker save my-fastapi-app -o fastapi-app.tar
 
+    - name: Set permissions for tar file
+      run: sudo chmod 777 fastapi-app.tar
+
     - name: Copy Docker image to EC2
       uses: appleboy/scp-action@master
       with:
