@@ -29,8 +29,8 @@ class DIARY:
         load_dotenv()
         self.url = "https://effective-journey-4jgjwgvgqqgg3jwjw-8000.app.github.dev/get_data" #사이트 주소 넣어주세요!
         self.input_data = {
-            "tone":"princess",
-            "condition":"good",
+            "tone":"제주도 사투리",
+            "mood":"good",
             "wakeTime":"09:00:00",
             "food":["밥", "김치", "미역국"],
             "userDo":["운동", "공부", "술"],
@@ -43,21 +43,30 @@ class DIARY:
             아래 정보를 바탕으로 사용자에게 친근하게 하루 일기를 작성해주세요.
 
             - 톤: {self.input_data['tone']}
-            - 컨디션: {self.input_data['condition']}
+            - 컨디션: {self.input_data['mood']}
             - 기상 시간: {self.input_data['wakeTime']}
             - 먹은 음식: {', '.join(self.input_data['food'])}
             - 한 일: {', '.join(self.input_data['userDo'])}
             - 만난 사람: {', '.join(self.input_data['meetPeople'])}
             - 추가 문장: "{self.input_data['extSentence']}"
 
-            위 내용을 바탕으로 톤에 충실한 이모티콘을 사용하여 자연스럽고 감성적인 일기를 작성해주세요.
+            위 내용을 바탕으로 톤에 충실한 이모티콘을 사용하여 톤과 컨디션에 가까운 느낌으로 10문장 이내의 일기를 작성해주세요.
             """
     # JSON 파일 로드 함수
     
+    def summary(self, response_kor):
+        summary_prompt = f"""아래 문장을 핵심 의미만 남기고 10자 이내로 자연스럽게 요약해줘.
+        문장의 의미를 유지하면서도 가능한 짧고 간결하게 표현해야 해.  
+        불필요한 단어는 제거하고, 핵심 단어 위주로 구성해줘.  
+        문장: "{response_kor}"  
+        요약된 문장:"""
+        return summary_prompt
+
     def translate(self, language, response_kor):
         translate_prompt = f"""당신은 {language}와 영어에 원어민 수준의 유창성을 갖춘 전문 번역가입니다.  
                     당신의 역할은 주어진 원문을 {language}로 번역하는 것입니다.
-                    이 과정에서 의미, 어조, 문맥을 가능한 정확하게 유지해야 합니다.
+                    이 과정에서 의미, 어조, 문맥을 가능한 정확하게 반영해야 합니다.
+                    반드시 번역한 내용을 도출해야합니다.
 
                     **원문:** {response_kor}  
                     **정확한 번역:**
@@ -72,7 +81,8 @@ class DIARY:
         response_Japan = model.invoke(self.translate("Japanese", response_kor))
         response_China = model.invoke(self.translate("Chinese", response_kor))
         reponse_latin = model.invoke(self.translate("Latina", response_kor))
-        return response_kor, response_eng, response_Japan, response_China, reponse_latin
+        reponse_summary = model.invoke(self.summary(response_kor))
+        return response_kor, response_eng, response_Japan, response_China, reponse_latin, reponse_summary
 
 main_model = DIARY()
 
@@ -88,13 +98,14 @@ async def generate_diary_entry():
         "meetPeople":["그레이", "비키"],
         "extSentence":"오늘 하루 힘내자"
     } # JSON 데이터 불러오기
-    diary_kor, diary_eng, diary_Japan, diary_China, diary_latin = main_model.generate_diary(data)  # AI가 일기 작성
-    print(diary_kor.content, diary_eng.content)
-    return {"diary_kor": diary_kor.content, 
-            "diary_eng" : diary_eng.content, 
-            "diary_japan" : diary_Japan, 
-            "diary_China" : diary_China, 
-            "diary_latin" : diary_latin}
+    diary_kor, diary_eng, diary_Japan, diary_China, diary_latin, diary_summary = main_model.generate_diary(main_model.input_data) #, diary_eng, diary_Japan, diary_China, diary_latin = main_model.generate_diary(data)  # AI가 일기 작성
+    #print(diary_kor.content, diary_eng.content)
+    return {"diary_kor": diary_kor.content,
+            "diary_eng" : diary_eng.content,
+            "diary_japan" : diary_Japan.content, 
+            "diary_China" : diary_China.content, 
+            "diary_latin" : diary_latin.content,
+            "diary_summary" : diary_summary.content}
 
 if __name__ == '__main__':
     url = "https://effective-journey-4jgjwgvgqqgg3jwjw-8000.app.github.dev/get_data"
