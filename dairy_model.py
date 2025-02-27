@@ -8,42 +8,41 @@ import requests
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 
-def load_json(url):
-    response = requests.get(url)
-    json_data = response.json()
-    return json_data
+class DiaryRequest(BaseModel):
+    tone: str
+    mood: str
+    wakeTime: str
+    food: List[str]
+    userDo: List[str]
+    meetPeople: List[str]
+    extSentence: str
 
 # JSON 데이터 모델 정의
 class DIARY:
     def __init__(self):
         load_dotenv()
-        self.url = "https://effective-journey-4jgjwgvgqqgg3jwjw-8000.app.github.dev/get_data" #사이트 주소 넣어주세요!
-        self.input_data = {
-            "tone": "공주",
-            "mood":"good",
-            "wakeTime":"09:00:00",
-            "food":["밥", "김치", "미역국"],
-            "userDo":["운동", "공부", "술"],
-            "meetPeople":["그레이", "비키"],
-            "extSentence":"오늘 하루 힘내자"
-        }#load_json(self.url)
+        self.tone = ""
         self.model = init_chat_model("gpt-4o-mini", model_provider = "openai")
+        self.prompt_template = ""
+    # JSON 파일 로드 함수
+
+    def diary_prompt(self, data):
         self.prompt_template = f"""
             당신은 사용자 맞춤형 AI 일기 작성 도우미입니다.
             아래 정보를 바탕으로 사용자에게 친근하게 하루 일기를 작성해주세요.
 
-            - 톤: {self.input_data['tone']}
-            - 컨디션: {self.input_data['mood']}
-            - 기상 시간: {self.input_data['wakeTime']}
-            - 먹은 음식: {', '.join(self.input_data['food'])}
-            - 한 일: {', '.join(self.input_data['userDo'])}
-            - 만난 사람: {', '.join(self.input_data['meetPeople'])}
-            - 추가 문장: "{self.input_data['extSentence']}"
+            - 톤: {self.tone}
+            - 컨디션: {data.mood}
+            - 기상 시간: {data.wakeTime}
+            - 먹은 음식: {', '.join(data.food)}
+            - 한 일: {', '.join(data.userDo)}
+            - 만난 사람: {', '.join(data.meetPeople)}
+            - 추가 문장: "{data.extSentence}"
 
             위 내용을 바탕으로 톤에 충실한 이모티콘을 사용하여 톤과 컨디션에 가까운 느낌으로 10문장 이내의 일기를 작성해주세요.
+            꼭 한국말로 생성해주되, 날짜 빼줘.
             """
-    # JSON 파일 로드 함수
-    
+
     def summary(self, response_kor):
         summary_prompt = f"""아래 문장을 핵심 의미만 남기고 10자 이내로 자연스럽게 요약해줘.
         문장의 의미를 유지하면서도 가능한 짧고 간결하게 표현해야 해.  
@@ -55,20 +54,20 @@ class DIARY:
         return summary_prompt
 
     def change_tone(self):
-        if self.input_data['tone'] == "MZ 세대":
-            self.input_data['tone'] = "2025 기준 밈을 사용한 MZ세대 경박하고 어미엔 음,슴체를 쓰는 말투"
+        if self.tone == "MZ 세대":
+            self.tone = "2025 기준 밈을 사용한 MZ세대 경박하고 어미엔 음,슴체를 쓰는 말투"
         
-        elif self.input_data['tone'] == "사극":
-            self.input_data['tone'] = "사극 말투를 사용하는 근엄한 조선시대 왕 말투"
+        elif self.tone == "사극":
+            self.tone = "사극 말투를 사용하는 근엄한 조선시대 왕 말투"
 
-        elif self.input_data['tone'] == "데일리": 
-            self.input_data['tone'] = "general"
+        elif self.tone == "데일리": 
+            self.itone = "general"
 
-        elif self.input_data['tone'] == "사춘기 중학생":
-            self.input_data['tone'] = "상처받을 정도로 시비거는 말투"
+        elif self.tone == "사춘기 중학생":
+            self.tone = "상처받을 정도로 시비거는 말투"
 
-        elif self.input_data['tone'] == "공주": 
-            self.input_data['tone'] = "princess"
+        elif self.tone == "공주": 
+            self.tone = "princess"
         
         else:    
             pass
@@ -85,9 +84,13 @@ class DIARY:
                     """
         return translate_prompt
 
-    #이 과정에서 의미, 어조, 문맥을 100% 정확하게 유지해야 합니다.
     # 일기 생성
-    def generate_diary(self, data):
+    def generate_diary(self, data: DiaryRequest):
+        self.tone = data.tone
+        self.change_tone()
+        
+        self.diary_prompt(data) #다이어리 프롬프트 지정.(input은 body)
+
         response_kor = self.model.invoke(self.prompt_template)
         response_eng = self.model.invoke(self.translate("English", response_kor))
         response_Japan = self.model.invoke(self.translate("Japanese", response_kor))
