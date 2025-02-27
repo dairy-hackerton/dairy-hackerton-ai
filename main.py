@@ -37,14 +37,16 @@ def root():
 
 @app.post("/generate_diary")
 async def generate_diary_entry(data: DiaryRequest):
-    def on_server_start():
+    def on_server_start(data):
         # 서버가 열린 후 특정 API 요청을 자동으로 실행 가능
         url = "http://13.124.98.245:8000/generate_diary"
         response = requests.post(url, json=data)
 
+
     # 서버가 시작될 때 자동 실행되는 이벤트
     @app.on_event("startup")
     def startup_event():
+        print("vicky")
         threading.Thread(target=on_server_start, daemon=True).start()
 
     #print("out_input", data)
